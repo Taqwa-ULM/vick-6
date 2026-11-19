@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Misi Aljabar — Vick Praditya Podutolo (Kelas 7.3)</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            skyquest: {
+              50: '#F0F9FF',
+              100: '#E0F2FE',
+              200: '#BAE6FD',
+              500: '#0EA5E9',
+              600: '#0284C7',
+              700: '#0369A1',
+              800: '#075985',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #F0F7FF;
+      color: #1E293B;
+      user-select: none;
+    }
+
+    .math-expr {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Kanvas Gambar Motorik */
+    #drawing-canvas {
+      touch-action: none;
+      cursor: crosshair;
+      background-image: radial-gradient(#CBD5E1 1.5px, transparent 1.5px);
+      background-size: 20px 20px;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.9); opacity: 0; }
+      70% { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      50% { transform: translateX(8px); }
+      75% { transform: translateX(-6px); }
+    }
+    .animate-shake {
+      animation: shake 0.35s ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between pb-8">
+
+  <!-- =====================================================================
+       HEADER KHUSUS VICK PRADITYA PODUTOLO
+       ===================================================================== -->
+  <header class="bg-white border-b-2 border-skyquest-200 px-4 py-3.5 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-3xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-skyquest-600 text-white font-extrabold text-base flex items-center justify-center shadow-xs shrink-0">
+          7.3
+        </div>
+        <div>
+          <h1 class="font-extrabold text-slate-800 text-base sm:text-lg leading-tight">
+            Halo, Vick Praditya Podutolo! 👋
+          </h1>
+          <p class="text-xs font-bold text-skyquest-600">
+            Kelas 7.3 • SMP Almazaya • Misi Pelan-Pelan Tapi Pasti
+          </p>
+        </div>
+      </div>
+
+      <!-- Indikator Bintang & Progres Soal -->
+      <div class="flex items-center gap-2.5">
+        <div class="px-3.5 py-1.5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-800 font-extrabold text-sm flex items-center gap-1.5">
+          <span>⭐</span>
+          <span id="star-count">0 / 4 Bintang</span>
+        </div>
+        <button type="button" onclick="openTeacherLog()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold border border-slate-200" title="Catatan Klik untuk Mr. Taqwa">
+          👨‍🏫 Log
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================================
+       AREA UTAMA SOAL INTERAKTIF + MOTORIK GAMBAR
+       ===================================================================== -->
+  <main class="max-w-3xl w-full mx-auto px-4 pt-5 flex-1">
+
+    <!-- Progress Bar Langkah -->
+    <div class="mb-4">
+      <div class="flex justify-between text-xs font-extrabold text-slate-600 mb-1.5">
+        <span id="question-step-label">SOAL 1 DARI 4</span>
+        <span id="question-topic-badge" class="text-skyquest-700">Topik: Kotak Pensil</span>
+      </div>
+      <div class="w-full h-3.5 bg-slate-200 rounded-full overflow-hidden p-0.5">
+        <div id="top-progress-bar" class="h-full bg-skyquest-600 rounded-full transition-all duration-500" style="width: 25%"></div>
+      </div>
+    </div>
+
+    <!-- KARTU SOAL UTAMA -->
+    <div id="question-card" class="bg-white rounded-3xl p-5 sm:p-7 shadow-md border-2 border-skyquest-100 space-y-5">
+
+      <!-- 1. Cerita Singkat & Jelas (Tanpa Kalimat Panjang) -->
+      <div class="p-4 sm:p-5 rounded-2xl bg-skyquest-50 border-2 border-skyquest-200">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="px-2.5 py-0.5 rounded-lg bg-skyquest-600 text-white text-xs font-extrabold">BACA PELAN-PELAN</span>
+          <button type="button" onclick="readStoryAloud()" class="px-2.5 py-0.5 rounded-lg bg-white hover:bg-skyquest-100 text-skyquest-700 border border-skyquest-300 text-xs font-extrabold flex items-center gap-1">
+            <span>🔊</span>
+            <span>Dengarkan Soal</span>
+          </button>
+        </div>
+        <p id="story-text" class="text-base sm:text-xl font-bold text-slate-800 leading-relaxed">
+          <!-- Diisi oleh JS -->
+        </p>
+      </div>
+
+      <!-- 2. AKTIVITAS MOTORIK: KANVAS GAMBAR & HITUNG VISUAL -->
+      <div class="rounded-2xl border-2 border-amber-300 bg-amber-50/50 p-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-md bg-amber-500 text-white text-[11px] font-extrabold uppercase">
+              ✍️ Langkah 1 (Motorik Tangan): Gambar &amp; Lingkari!
+            </span>
+            <p id="motor-instruction" class="text-xs sm:text-sm font-extrabold text-amber-950 mt-1">
+              <!-- Diisi JS -->
+            </p>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="setBrushColor('#0284C7')" class="w-7 h-7 rounded-full bg-skyquest-600 border-2 border-white shadow-xs" title="Warna Biru"></button>
+            <button type="button" onclick="setBrushColor('#DC2626')" class="w-7 h-7 rounded-full bg-red-600 border-2 border-white shadow-xs" title="Warna Merah"></button>
+            <button type="button" onclick="setBrushColor('#16A34A')" class="w-7 h-7 rounded-full bg-green-600 border-2 border-white shadow-xs" title="Warna Hijau"></button>
+            <button type="button" onclick="clearCanvas()" class="px-2.5 py-1 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-extrabold">
+              🧹 Hapus Gambar
+            </button>
+          </div>
+        </div>
+
+        <!-- Wrapper Kanvas Responsif dengan Gambar Bantu Visual di Latar -->
+        <div class="relative w-full h-44 sm:h-48 rounded-2xl bg-white border-2 border-dashed border-amber-400 overflow-hidden">
+          <!-- Ilustrasi Visual Kotak + Satuan (Membantu Vick Menghitung) -->
+          <div id="visual-helper-layer" class="absolute inset-0 pointer-events-none flex items-center justify-center p-3 opacity-90">
+            <!-- Diisi SVG visual kotak-kotak oleh JS -->
+          </div>
+          <!-- Kanvas Tempat Vick Menggambar / Mencoret / Melingkari -->
+          <canvas id="drawing-canvas" class="relative z-10 w-full h-full block"></canvas>
+        </div>
+        <p id="canvas-status-hint" class="text-[11px] font-bold text-amber-800 mt-1.5">
+          👆 Sentuh / seret jarimu di kotak putih di atas untuk menggambar atau melingkari kotaknya dulu ya, Vick!
+        </p>
+      </div>
+
+      <!-- 3. PILIHAN BENTUK ALJABAR (LANGKAH 2) -->
+      <div class="space-y-2.5">
+        <label class="block text-sm sm:text-base font-extrabold text-slate-800">
+          🧩 Langkah 2: Pilih Bentuk Aljabarnya!
+        </label>
+        <div id="expr-options-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <!-- 3 Pilihan Besar & Ramah Sentuh -->
+        </div>
+      </div>
+
+      <!-- 4. HITUNG HASIL AKHIR (LANGKAH 3) -->
+      <div class="space-y-2.5">
+        <label id="value-question-label" class="block text-sm sm:text-base font-extrabold text-slate-800">
+          🔢 Langkah 3: Berapa Jumlah Semuanya?
+        </label>
+        <div id="val-options-grid" class="grid grid-cols-3 gap-2.5">
+          <!-- 3 Pilihan Angka Besar -->
+        </div>
+      </div>
+
+      <!-- 5. TOMBOL CEK & TOMBOL LANJUT (TERKUNCI SAMPAI BENAR!) -->
+      <div class="pt-3 border-t-2 border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <button type="button" onclick="verifyVickAnswer()" id="check-answer-btn" class="w-full sm:w-auto flex-1 py-3.5 px-6 rounded-2xl bg-skyquest-600 hover:bg-skyquest-700 text-white font-extrabold text-base shadow-md transition-all cursor-pointer">
+          ✅ Periksa Jawaban Vick
+        </button>
+
+        <button type="button" onclick="goToNextQuestion()" id="next-slide-btn" disabled class="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-slate-200 text-slate-400 font-extrabold text-base cursor-not-allowed transition-all flex items-center justify-center gap-2">
+          <span id="next-btn-icon">🔒</span>
+          <span id="next-btn-text">Soal Berikutnya (Terkunci)</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- LAYAR SELESAI (MUNCUL HANYA SETELAH SEMUA 4 SOAL BENAR) -->
+    <div id="completion-screen" class="hidden bg-white rounded-3xl p-6 sm:p-8 shadow-lg border-2 border-emerald-300 text-center space-y-5 animate-pop">
+      <div class="w-20 h-20 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-4xl mx-auto">
+        🏆
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800">
+        Hebat Sekali, Vick Praditya Podutolo! 🎉
+      </h2>
+      <p class="text-base text-slate-600 max-w-md mx-auto leading-relaxed">
+        Vick sudah menyelesaikan semua <strong>4 Misi Aljabar</strong> dengan menggambar dan menghitung sendiri!
+      </p>
+
+      <div class="p-4 rounded-2xl bg-skyquest-50 border-2 border-skyquest-200 max-w-md mx-auto text-left space-y-1.5 text-sm">
+        <p class="font-extrabold text-skyquest-900">📋 Laporan Belajar Vick (Kelas 7.3):</p>
+        <p class="text-slate-700">• Bintang Didapat: <strong class="text-amber-600">4 / 4 Bintang ⭐</strong></p>
+        <p class="text-slate-700">• Jumlah Percobaan Salah (Catat di Buku): <strong id="final-mistake-count" class="text-rose-600">0 kali</strong></p>
+        <p class="text-xs text-slate-500 pt-1">Tunjukkan layar ini dan buku tulismu ke <strong>Mr. Taqwa</strong> ya!</p>
+      </div>
+
+      <button type="button" onclick="restartAll()" class="px-6 py-3 rounded-2xl bg-skyquest-600 hover:bg-skyquest-700 text-white font-extrabold text-sm cursor-pointer">
+        🔄 Ulangi Latihan dari Awal
+      </button>
+    </div>
+
+  </main>
+
+  <!-- =====================================================================
+       POP-UP WAJIB TULIS DI BUKU KETIKA SALAH / ASAL KLIK
+       (Tidak Bisa Ditutup Sebelum Menggambar/Menulis & Centang Konfirmasi)
+       ===================================================================== -->
+  <div id="mistake-popup-modal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 border-4 border-rose-400 shadow-2xl space-y-4 animate-pop">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl shrink-0">
+          🛑
+        </div>
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-extrabold uppercase">
+            Jangan Asal Klik Ya, Vick!
+          </span>
+          <h3 class="font-extrabold text-slate-800 text-lg leading-tight mt-0.5">
+            Jawaban Belum Tepat!
+          </h3>
+        </div>
+      </div>
+
+      <!-- Penjelasan Sederhana Kenapa Salah -->
+      <div id="popup-mistake-reason" class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-sm font-bold text-rose-900 leading-relaxed">
+        <!-- Diisi JS -->
+      </div>
+
+      <!-- Instruksi Motorik: Wajib Tulis di Buku Tulis -->
+      <div class="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-2">
+        <p class="text-xs font-extrabold uppercase text-amber-800">
+          📓 Tugas Wajib Sebelum Lanjut:
+        </p>
+        <p class="text-sm font-bold text-slate-800">
+          Ambil pensil dan <strong>tuliskan kalimat di bawah ini di buku tulismu</strong>:
+        </p>
+        <div id="notebook-copy-box" class="p-3 rounded-xl bg-white border border-amber-300 math-expr text-sm font-extrabold text-skyquest-800">
+          <!-- Kalimat yang wajib ditulis Vick di buku -->
+        </div>
+      </div>
+
+      <!-- Kotak Centang Kejujuran -->
+      <label class="flex items-start gap-3 p-3 rounded-2xl bg-slate-100 border border-slate-200 cursor-pointer">
+        <input type="checkbox" id="wrote-in-book-checkbox" onchange="togglePopupCloseBtn()" class="w-5 h-5 mt-0.5 rounded accent-emerald-600 shrink-0">
+        <span class="text-xs sm:text-sm font-extrabold text-slate-700">
+          Saya sudah menggambar dan menulis jawaban yang benar di buku tulis saya.
+        </span>
+      </label>
+
+      <!-- Tombol Tutup Pop-up (Terkunci selama 4 detik + harus centang) -->
+      <button type="button" id="close-mistake-modal-btn" disabled onclick="closeMistakeModal()" class="w-full py-3 rounded-2xl bg-slate-200 text-slate-400 font-extrabold text-sm cursor-not-allowed transition-all">
+        Tunggu 4 detik &amp; centang kotak di atas...
+      </button>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       POP-UP LOG UNTUK MR. TAQWA (CEK APAKAH VICK ASAL KLIK)
+       ===================================================================== -->
+  <div id="teacher-log-modal" class="hidden fixed inset-0 z-50 bg-slate-900/75 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 border-2 border-skyquest-300 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-extrabold text-slate-800 text-base">👨‍🏫 Catatan Aktivitas Vick (Kelas 7.3)</h3>
+        <button type="button" onclick="closeTeacherLog()" class="px-3 py-1 rounded-xl bg-slate-100 text-slate-700 text-xs font-extrabold">Tutup</button>
+      </div>
+      <div id="teacher-log-list" class="max-h-60 overflow-y-auto space-y-2 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-200">
+        <p class="text-slate-500">Belum ada aktivitas tercatat.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       JAVASCRIPT INTERAKTIF + PENGAMAN ANTI-ASAL-KLIK + MOTORIK KANVAS
+       ===================================================================== -->
+  <script>
+    // ---------------------------------------------------------------------
+    // 1. BANK SOAL SEDERHANA & VISUAL UNTUK VICK (4 SOAL BERTAHAP)
+    // ---------------------------------------------------------------------
+    const vickQuestions = [
+      {
+        id: 1,
+        topic: "Soal 1: Kotak Pensil",
+        story: "Vick punya <span class='text-skyquest-700 underline'>2 kotak pensil</span> dan <span class='text-amber-600 underline'>3 pensil satuan</span>. Jika 1 kotak isinya <span class='math-expr bg-white px-2 py-0.5 rounded border'>x = 5</span> pensil, berapa semua pensil Vick?",
+        speechText: "Soal satu. Vick punya 2 kotak pensil dan 3 pensil satuan. Jika 1 kotak isinya 5 pensil, berapa semua pensil Vick?",
+        motorInstruction: "Gambarlah 2 kotak besar dan 3 batang pensil di area putih ini, lalu hitung!",
+        boxCount: 2,
+        extraCount: 3,
+        varSymbol: "x",
+        varValue: 5,
+        exprOptions: ["2x + 3", "3x + 2", "5x"],
+        correctExpr: "2x + 3",
+        valueLabel: "🔢 Langkah 3: Hitung (2 × 5) + 3 = ...",
+        valOptions: [10, 13, 8],
+        correctVal: 13,
+        notebookSentence: "Soal 1: 2 kotak (x) + 3 pensil = 2x + 3. Jika x = 5, maka 2(5) + 3 = 13 pensil."
+      },
+      {
+        id: 2,
+        topic: "Soal 2: Kantong Permen",
+        story: "Ibu memberi Vick <span class='text-skyquest-700 underline'>3 kantong permen</span> dan <span class='text-amber-600 underline'>2 permen tambahan</span>. Jika 1 kantong isinya <span class='math-expr bg-white px-2 py-0.5 rounded border'>p = 4</span> permen, berapa jumlah permen Vick?",
+        speechText: "Soal dua. Ibu memberi Vick 3 kantong permen dan 2 permen tambahan. Jika 1 kantong isinya 4 permen, berapa jumlah permen Vick?",
+        motorInstruction: "Lingkari 3 kantong permen dan gambar 2 permen bulat di sampingnya!",
+        boxCount: 3,
+        extraCount: 2,
+        varSymbol: "p",
+        varValue: 4,
+        exprOptions: ["2p + 3", "3p + 2", "3p − 2"],
+        correctExpr: "3p + 2",
+        valueLabel: "🔢 Langkah 3: Hitung (3 × 4) + 2 = ...",
+        valOptions: [14, 12, 9],
+        correctVal: 14,
+        notebookSentence: "Soal 2: 3 kantong (p) + 2 permen = 3p + 2. Jika p = 4, maka 3(4) + 2 = 14 permen."
+      },
+      {
+        id: 3,
+        topic: "Soal 3: Kotak Kue Dimakan",
+        story: "Ada <span class='text-skyquest-700 underline'>2 kotak kue</span>. Lalu Vick memakan <span class='text-rose-600 underline'>1 kue</span>. Jika 1 kotak isinya <span class='math-expr bg-white px-2 py-0.5 rounded border'>y = 6</span> kue, berapa sisa kue sekarang?",
+        speechText: "Soal tiga. Ada 2 kotak kue. Lalu Vick memakan 1 kue. Jika 1 kotak isinya 6 kue, berapa sisa kue sekarang?",
+        motorInstruction: "Coret (tanda silang X) 1 kue yang dimakan pada gambar di bawah ini!",
+        boxCount: 2,
+        extraCount: -1, // Kasus pengurangan visual
+        varSymbol: "y",
+        varValue: 6,
+        exprOptions: ["2y + 1", "2y − 1", "y − 2"],
+        correctExpr: "2y − 1",
+        valueLabel: "🔢 Langkah 3: Hitung (2 × 6) − 1 = ...",
+        valOptions: [13, 12, 11],
+        correctVal: 11,
+        notebookSentence: "Soal 3: 2 kotak (y) dikurangi 1 kue = 2y - 1. Jika y = 6, maka 2(6) - 1 = 11 kue."
+      },
+      {
+        id: 4,
+        topic: "Soal 4: Gabungkan Kotak Sejenis",
+        story: "Vick punya <span class='text-skyquest-700 underline'>2 kotak spidol (2x)</span>, lalu Mr. Taqwa memberi lagi <span class='text-emerald-700 underline'>1 kotak spidol (1x)</span>. Jika 1 kotak isinya <span class='math-expr bg-white px-2 py-0.5 rounded border'>x = 10</span> spidol, berapa semuanya?",
+        speechText: "Soal empat. Vick punya 2 kotak spidol, lalu Mr. Taqwa memberi lagi 1 kotak spidol. Jika 1 kotak isinya 10 spidol, berapa semuanya?",
+        motorInstruction: "Gambar garis penghubung untuk menggabungkan semua kotak spidol!",
+        boxCount: 3,
+        extraCount: 0,
+        varSymbol: "x",
+        varValue: 10,
+        exprOptions: ["2x + 1", "3x", "2x"],
+        correctExpr: "3x",
+        valueLabel: "🔢 Langkah 3: Hitung 3 × 10 = ...",
+        valOptions: [20, 30, 13],
+        correctVal: 30,
+        notebookSentence: "Soal 4: 2x + 1x = 3x. Jika x = 10, maka 3(10) = 30 spidol."
+      }
+    ];
+
+    // ---------------------------------------------------------------------
+    // 2. STATE APLIKASI & ANTI-ASAL-KLIK
+    // ---------------------------------------------------------------------
+    const appState = {
+      currentIdx: 0,
+      selectedExpr: null,
+      selectedVal: null,
+      hasDrawnOnCanvas: false,
+      strokeCount: 0,
+      isCurrentSolved: false,
+      starsEarned: 0,
+      mistakeCount: 0,
+      lastCheckTime: 0,
+      logs: []
+    };
+
+    // ---------------------------------------------------------------------
+    // 3. SISTEM SUARA SEDERHANA (WEB AUDIO + TEXT-TO-SPEECH INDONESIA)
+    // ---------------------------------------------------------------------
+    function playTone(type) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'success') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.1);
+          osc.frequency.setValueAtTime(783.99, now + 0.2);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          osc.start(now);
+          osc.stop(now + 0.46);
+        } else {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.setValueAtTime(175, now + 0.15);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.36);
+        }
+      } catch (e) {}
+    }
+
+    function readStoryAloud() {
+      const q = vickQuestions[appState.currentIdx];
+      if (!q || !('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(q.speechText);
+      utter.lang = 'id-ID';
+      utter.rate = 0.9; // Sedikit lebih lambat agar mudah dipahami Vick
+      window.speechSynthesis.speak(utter);
+    }
+
+    function addLog(text) {
+      const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      appState.logs.unshift(`[${time}] ${text}`);
+      const listEl = document.getElementById('teacher-log-list');
+      if (listEl) {
+        listEl.innerHTML = appState.logs.map(item => `<div class="p-2 rounded-lg bg-white border border-slate-200 font-semibold text-slate-700">${item}</div>`).join('');
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // 4. KANVAS MOTORIK HALUS (MENGGAMBAR / MELINGKARI DI LAYAR)
+    // ---------------------------------------------------------------------
+    const canvas = document.getElementById('drawing-canvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let brushColor = '#0284C7';
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = brushColor;
+    }
+
+    function setBrushColor(hex) {
+      brushColor = hex;
+      ctx.strokeStyle = brushColor;
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      appState.hasDrawnOnCanvas = false;
+      appState.strokeCount = 0;
+      const hint = document.getElementById('canvas-status-hint');
+      if (hint) {
+        hint.textContent = "👆 Sentuh / seret jarimu di kotak putih di atas untuk menggambar atau melingkari kotaknya dulu ya, Vick!";
+        hint.className = "text-[11px] font-bold text-amber-800 mt-1.5";
+      }
+    }
+
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function startDraw(e) {
+      isDrawing = true;
+      const pos = getPointerPos(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      appState.strokeCount++;
+      if (appState.strokeCount >= 1) {
+        appState.hasDrawnOnCanvas = true;
+        const hint = document.getElementById('canvas-status-hint');
+        if (hint) {
+          hint.textContent = "✅ Bagus! Vick sudah menggambar di kanvas.";
+          hint.className = "text-[11px] font-extrabold text-emerald-700 mt-1.5";
+        }
+      }
+    }
+
+    function moveDraw(e) {
+      if (!isDrawing) return;
+      if (e.cancelable) e.preventDefault();
+      const pos = getPointerPos(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+
+    function endDraw() {
+      isDrawing = false;
+      ctx.closePath();
+    }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', moveDraw);
+    window.addEventListener('mouseup', endDraw);
+
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', moveDraw, { passive: false });
+    canvas.addEventListener('touchend', endDraw);
+
+    // ---------------------------------------------------------------------
+    // 5. RENDER SOAL & VISUAL KOTAK
+    // ---------------------------------------------------------------------
+    function renderVisualHelper(q) {
+      const layer = document.getElementById('visual-helper-layer');
+      if (!layer) return;
+
+      let boxesHtml = '';
+      for (let i = 0; i < q.boxCount; i++) {
+        boxesHtml += `
+          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-skyquest-400 bg-skyquest-50/70 flex flex-col items-center justify-center">
+            <span class="text-lg">📦</span>
+            <span class="math-expr text-xs font-extrabold text-skyquest-800">${q.varSymbol} = ${q.varValue}</span>
+          </div>
+        `;
+      }
+
+      let extraHtml = '';
+      if (q.extraCount > 0) {
+        extraHtml += `<div class="text-xl font-extrabold text-slate-400 mx-1">+</div>`;
+        for (let j = 0; j < q.extraCount; j++) {
+          extraHtml += `
+            <div class="w-9 h-9 rounded-full border-2 border-amber-400 bg-amber-100/80 flex items-center justify-center text-xs font-extrabold text-amber-800">
+              1
+            </div>
+          `;
+        }
+      } else if (q.extraCount < 0) {
+        extraHtml += `
+          <div class="ml-2 px-2.5 py-1 rounded-xl border-2 border-dashed border-rose-400 bg-rose-50 text-xs font-extrabold text-rose-700">
+            Dimakan 1 (−1)
+          </div>
+        `;
+      }
+
+      layer.innerHTML = `<div class="flex flex-wrap items-center justify-center gap-2">${boxesHtml}${extraHtml}</div>`;
+    }
+
+    function renderCurrentQuestion() {
+      const q = vickQuestions[appState.currentIdx];
+      appState.selectedExpr = null;
+      appState.selectedVal = null;
+      appState.isCurrentSolved = false;
+      appState.lastCheckTime = Date.now();
+
+      // Update Header & Progress
+      document.getElementById('question-step-label').textContent = `SOAL ${appState.currentIdx + 1} DARI ${vickQuestions.length}`;
+      document.getElementById('question-topic-badge').textContent = q.topic;
+      const pct = ((appState.currentIdx + 1) / vickQuestions.length) * 100;
+      document.getElementById('top-progress-bar').style.width = `${pct}%`;
+
+      // Update Teks Soal & Instruksi Motorik
+      document.getElementById('story-text').innerHTML = q.story;
+      document.getElementById('motor-instruction').textContent = q.motorInstruction;
+      document.getElementById('value-question-label').textContent = q.valueLabel;
+
+      // Reset Kanvas & Visual
+      resizeCanvas();
+      clearCanvas();
+      renderVisualHelper(q);
+
+      // Render Pilihan Bentuk Aljabar
+      const exprGrid = document.getElementById('expr-options-grid');
+      exprGrid.innerHTML = q.exprOptions.map(opt => `
+        <button type="button" onclick="selectExprOption('${opt}', this)"
+                class="expr-opt-btn math-expr py-3.5 px-4 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:bg-skyquest-50 text-slate-800 font-extrabold text-lg transition-all cursor-pointer">
+          ${opt}
+        </button>
+      `).join('');
+
+      // Render Pilihan Nilai Akhir
+      const valGrid = document.getElementById('val-options-grid');
+      valGrid.innerHTML = q.valOptions.map(num => `
+        <button type="button" onclick="selectValOption(${num}, this)"
+                class="val-opt-btn math-expr py-3.5 px-4 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:bg-skyquest-50 text-slate-800 font-extrabold text-xl transition-all cursor-pointer">
+          ${num}
+        </button>
+      `).join('');
+
+      // Kunci Tombol Lanjut
+      lockNextButton();
+    }
+
+    function selectExprOption(expr, btnEl) {
+      appState.selectedExpr = expr;
+      document.querySelectorAll('.expr-opt-btn').forEach(b => {
+        b.classList.remove('border-skyquest-600', 'bg-skyquest-100', 'text-skyquest-900', 'ring-2', 'ring-skyquest-300');
+        b.classList.add('border-slate-200', 'bg-slate-50', 'text-slate-800');
+      });
+      btnEl.classList.remove('border-slate-200', 'bg-slate-50', 'text-slate-800');
+      btnEl.classList.add('border-skyquest-600', 'bg-skyquest-100', 'text-skyquest-900', 'ring-2', 'ring-skyquest-300');
+    }
+
+    function selectValOption(val, btnEl) {
+      appState.selectedVal = val;
+      document.querySelectorAll('.val-opt-btn').forEach(b => {
+        b.classList.remove('border-skyquest-600', 'bg-skyquest-100', 'text-skyquest-900', 'ring-2', 'ring-skyquest-300');
+        b.classList.add('border-slate-200', 'bg-slate-50', 'text-slate-800');
+      });
+      btnEl.classList.remove('border-slate-200', 'bg-slate-50', 'text-slate-800');
+      btnEl.classList.add('border-skyquest-600', 'bg-skyquest-100', 'text-skyquest-900', 'ring-2', 'ring-skyquest-300');
+    }
+
+    // ---------------------------------------------------------------------
+    // 6. PENGAMAN ANTI-ASAL-KLIK & POP-UP WAJIB TULIS DI BUKU
+    // ---------------------------------------------------------------------
+    function lockNextButton() {
+      const nextBtn = document.getElementById('next-slide-btn');
+      const icon = document.getElementById('next-btn-icon');
+      const text = document.getElementById('next-btn-text');
+
+      nextBtn.disabled = true;
+      nextBtn.className = "w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-slate-200 text-slate-400 font-extrabold text-base cursor-not-allowed transition-all flex items-center justify-center gap-2";
+      icon.textContent = "🔒";
+      text.textContent = "Soal Berikutnya (Terkunci)";
+    }
+
+    function unlockNextButton() {
+      const nextBtn = document.getElementById('next-slide-btn');
+      const icon = document.getElementById('next-btn-icon');
+      const text = document.getElementById('next-btn-text');
+
+      nextBtn.disabled = false;
+      nextBtn.className = "w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base shadow-md cursor-pointer transition-all flex items-center justify-center gap-2 animate-pop";
+      icon.textContent = "🔓";
+      text.textContent = appState.currentIdx === vickQuestions.length - 1 ? "Selesai & Lihat Bintang! 🏆" : "Lanjut ke Soal Berikutnya →";
+    }
+
+    function verifyVickAnswer() {
+      const q = vickQuestions[appState.currentIdx];
+      const card = document.getElementById('question-card');
+      const secondsSpent = (Date.now() - appState.lastCheckTime) / 1000;
+
+      // 1. Cek apakah Vick sudah menggambar di kanvas motorik
+      if (!appState.hasDrawnOnCanvas) {
+        playTone('error');
+        card.classList.remove('animate-shake');
+        void card.offsetWidth;
+        card.classList.add('animate-shake');
+        addLog(`Soal ${q.id}: Mencoba cek tanpa menggambar di kanvas.`);
+        openMistakeModal(
+          "Vick belum menggambar atau melingkari kotak di area gambar! Gunakan jarimu untuk menggambar dulu ya.",
+          q.notebookSentence
+        );
+        return;
+      }
+
+      // 2. Cek apakah kedua pilihan sudah dipilih
+      if (!appState.selectedExpr || appState.selectedVal === null) {
+        playTone('error');
+        openMistakeModal(
+          "Vick belum memilih Bentuk Aljabar (Langkah 2) dan Angka Hasilnya (Langkah 3). Pilih keduanya dulu ya!",
+          q.notebookSentence
+        );
+        return;
+      }
+
+      // 3. Cek jika terlalu cepat (< 3 detik setelah soal muncul -> indikasi asal klik)
+      if (secondsSpent < 3 && !appState.isCurrentSolved) {
+        playTone('error');
+        appState.mistakeCount++;
+        addLog(`Soal ${q.id}: Klik terlalu cepat (${secondsSpent.toFixed(1)} detik).`);
+        openMistakeModal(
+          "Wah, cepat sekali kliknya! Baca soalnya pelan-pelan dulu ya Vick, jangan asal klik.",
+          q.notebookSentence
+        );
+        return;
+      }
+
+      // 4. Evaluasi Kebenaran Jawaban
+      const isExprRight = appState.selectedExpr === q.correctExpr;
+      const isValRight = appState.selectedVal === q.correctVal;
+
+      if (isExprRight && isValRight) {
+        playTone('success');
+        if (!appState.isCurrentSolved) {
+          appState.isCurrentSolved = true;
+          appState.starsEarned++;
+          document.getElementById('star-count').textContent = `${appState.starsEarned} / ${vickQuestions.length} Bintang`;
+          addLog(`Soal ${q.id}: BENAR! Mendapat 1 Bintang.`);
+        }
+        unlockNextButton();
+      } else {
+        // JAWABAN SALAH -> KUNCI & MUNCULKAN POP-UP WAJIB TULIS DI BUKU!
+        playTone('error');
+        appState.mistakeCount++;
+        lockNextButton();
+
+        card.classList.remove('animate-shake');
+        void card.offsetWidth;
+        card.classList.add('animate-shake');
+
+        let reasonText = "";
+        if (!isExprRight && !isValRight) {
+          reasonText = `Pilihan Bentuk Aljabar (${appState.selectedExpr}) dan Hitungannya (${appState.selectedVal}) masih salah.`;
+        } else if (!isExprRight) {
+          reasonText = `Hitungan angkanya sudah benar, tapi Bentuk Aljabar (${appState.selectedExpr}) belum tepat.`;
+        } else {
+          reasonText = `Bentuk Aljabarnya (${appState.selectedExpr}) sudah benar, tapi hitungan angkanya (${appState.selectedVal}) masih keliru.`;
+        }
+
+        addLog(`Soal ${q.id}: SALAH (Pilih ${appState.selectedExpr} & ${appState.selectedVal}). Pop-up tulis buku muncul.`);
+        openMistakeModal(reasonText, q.notebookSentence);
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // 7. KONTROL POP-UP WAJIB TULIS DI BUKU (DENGAN TIMER 4 DETIK)
+    // ---------------------------------------------------------------------
+    let modalCountdownTimer = null;
+    let modalSecondsLeft = 4;
+
+    function openMistakeModal(reasonHtml, notebookSentence) {
+      const modal = document.getElementById('mistake-popup-modal');
+      const reasonBox = document.getElementById('popup-mistake-reason');
+      const copyBox = document.getElementById('notebook-copy-box');
+      const cb = document.getElementById('wrote-in-book-checkbox');
+      const closeBtn = document.getElementById('close-mistake-modal-btn');
+
+      reasonBox.textContent = reasonHtml;
+      copyBox.textContent = notebookSentence;
+      cb.checked = false;
+
+      modalSecondsLeft = 4;
+      closeBtn.disabled = true;
+      closeBtn.className = "w-full py-3 rounded-2xl bg-slate-200 text-slate-400 font-extrabold text-sm cursor-not-allowed transition-all";
+      closeBtn.textContent = `Tunggu ${modalSecondsLeft} detik & centang kotak di atas...`;
+
+      modal.classList.remove('hidden');
+
+      clearInterval(modalCountdownTimer);
+      modalCountdownTimer = setInterval(() => {
+        modalSecondsLeft--;
+        if (modalSecondsLeft <= 0) {
+          clearInterval(modalCountdownTimer);
+          modalSecondsLeft = 0;
+        }
+        togglePopupCloseBtn();
+      }, 1000);
+    }
+
+    function togglePopupCloseBtn() {
+      const cb = document.getElementById('wrote-in-book-checkbox');
+      const closeBtn = document.getElementById('close-mistake-modal-btn');
+
+      if (modalSecondsLeft > 0) {
+        closeBtn.disabled = true;
+        closeBtn.className = "w-full py-3 rounded-2xl bg-slate-200 text-slate-400 font-extrabold text-sm cursor-not-allowed transition-all";
+        closeBtn.textContent = `Tunggu ${modalSecondsLeft} detik & centang kotak di atas...`;
+      } else if (!cb.checked) {
+        closeBtn.disabled = true;
+        closeBtn.className = "w-full py-3 rounded-2xl bg-amber-100 text-amber-800 font-extrabold text-sm cursor-not-allowed transition-all";
+        closeBtn.textContent = "Centang kotak kejujuran di atas dulu ya!";
+      } else {
+        closeBtn.disabled = false;
+        closeBtn.className = "w-full py-3 rounded-2xl bg-skyquest-600 hover:bg-skyquest-700 text-white font-extrabold text-sm cursor-pointer transition-all";
+        closeBtn.textContent = "Saya Sudah Menulis di Buku — Coba Jawab Lagi";
+      }
+    }
+
+    function closeMistakeModal() {
+      document.getElementById('mistake-popup-modal').classList.add('hidden');
+      appState.lastCheckTime = Date.now();
+    }
+
+    // ---------------------------------------------------------------------
+    // 8. NAVIGASI SOAL & LOG GURU
+    // ---------------------------------------------------------------------
+    function goToNextQuestion() {
+      if (!appState.isCurrentSolved) return;
+
+      if (appState.currentIdx < vickQuestions.length - 1) {
+        appState.currentIdx++;
+        renderCurrentQuestion();
+      } else {
+        // Semua 4 soal selesai dengan benar!
+        document.getElementById('question-card').classList.add('hidden');
+        document.getElementById('completion-screen').classList.remove('hidden');
+        document.getElementById('final-mistake-count').textContent = `${appState.mistakeCount} kali`;
+        playTone('success');
+        addLog("SELESAI! Vick menyelesaikan semua 4 soal dengan benar.");
+      }
+    }
+
+    function restartAll() {
+      appState.currentIdx = 0;
+      appState.starsEarned = 0;
+      appState.mistakeCount = 0;
+      document.getElementById('star-count').textContent = `0 / ${vickQuestions.length} Bintang`;
+      document.getElementById('completion-screen').classList.add('hidden');
+      document.getElementById('question-card').classList.remove('hidden');
+      renderCurrentQuestion();
+    }
+
+    function openTeacherLog() {
+      document.getElementById('teacher-log-modal').classList.remove('hidden');
+    }
+
+    function closeTeacherLog() {
+      document.getElementById('teacher-log-modal').classList.add('hidden');
+    }
+
+    // Inisialisasi saat halaman dimuat
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCurrentQuestion();
+    });
+    window.addEventListener('resize', resizeCanvas);
+  </script>
+</body>
+</html>
